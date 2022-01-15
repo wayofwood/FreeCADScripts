@@ -12,11 +12,11 @@
 # ***************************************************************************
 
 import FreeCAD,FreeCADGui,Part
- 
+
 dir = os.path.dirname(__file__)
 ui_name = "SmartSelectUI.ui"
 path_to_ui = dir + "/" + ui_name
- 
+
 def issimilar(v1,v2,precision):
     if (abs(v1-v2) < abs(v1*precision) ):
         return True
@@ -27,7 +27,7 @@ class SelectTaskPanel:
    def __init__(self):
        # this will create a Qt widget from our ui file
        self.form = FreeCADGui.PySideUic.loadUi(path_to_ui)
- 
+
    def accept(self):
        sameobject = self.form.sameObjectCheck.isChecked()
        samearea =  self.form.sameAreaCheck.isChecked()
@@ -43,35 +43,38 @@ class SelectTaskPanel:
        givenx = -999.0
        giveny = -999.0
        startobj = ""
+       select_edges = False
+       select_faces = False
 
        for o in selection:
               startobj = o.Object.Label
               for obj in o.SubObjects:
                      if len(obj.Edges) == 1:
-                            length = obj.Edges[0].Length    
+                            length = obj.Edges[0].Length
                             givenx = obj.Edges[0].CenterOfMass.x
                             giveny = obj.Edges[0].CenterOfMass.y
                             givenz = obj.Edges[0].CenterOfMass.z
-		
+                            select_edges = True
+
                      if len(obj.Faces) == 1:
                             area = obj.Faces[0].Area
                             givenx = obj.Faces[0].CenterOfMass.x
                             giveny = obj.Faces[0].CenterOfMass.y
                             givenz = obj.Faces[0].CenterOfMass.z
-		
-		
-       for obj in FreeCAD.ActiveDocument.Objects: 
-              if hasattr (obj, "Shape") and (obj.Label == startobj or sameobject == False): 
+                            select_faces = True
+
+       for obj in FreeCAD.ActiveDocument.Objects:
+              if hasattr (obj, "Shape") and (obj.Label == startobj or sameobject == False):
                      for i, edge in enumerate(obj.Shape.Edges, 1):
-                            if (issimilar(edge.Length, length, precision) or samearea == False) and (issimilar(edge.CenterOfMass.z,givenz,precision) or samez == False) and (issimilar(edge.CenterOfMass.z,givenx,precision) or samex == False) and (issimilar(edge.CenterOfMass.z,giveny,precision) or samey == False):
+                            if  select_edges and (issimilar(edge.Length, length, precision) or samearea == False) and (issimilar(edge.CenterOfMass.z,givenz,precision) or samez == False) and (issimilar(edge.CenterOfMass.z,givenx,precision) or samex == False) and (issimilar(edge.CenterOfMass.z,giveny,precision) or samey == False):
                                    Gui.Selection.addSelection(obj, "Edge{:d}".format(i))
-		
+
                      for i, face in enumerate(obj.Shape.Faces, 1):
-                            if (issimilar(face.Area, area, precision)  or samearea == False) and (issimilar(face.CenterOfMass.z,givenz, precision) or samez == False) and (issimilar(face.CenterOfMass.z,givenx, precision) or samex == False) and (issimilar(face.CenterOfMass.z,giveny, precision) or samey == False):
+                            if select_faces and (issimilar(face.Area, area, precision)  or samearea == False) and (issimilar(face.CenterOfMass.z,givenz, precision) or samez == False) and (issimilar(face.CenterOfMass.z,givenx, precision) or samex == False) and (issimilar(face.CenterOfMass.z,giveny, precision) or samey == False):
                                    Gui.Selection.addSelection(obj, "Face{:d}".format(i))
 
 
        FreeCADGui.Control.closeDialog()
-        
+
 panel = SelectTaskPanel()
 FreeCADGui.Control.showDialog(panel)
