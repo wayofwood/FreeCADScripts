@@ -25,4 +25,4 @@ pockets of an object with the same size.
 
 "Same Z/X/Y" will only select objects that have the same X, Y or Z
 variable as the selected one. Especially Z is helpful if there are 
-similar shapes at the top and the bootom of an object. 
+similar shapes at the top and the bottom of an object. 
